@@ -1,0 +1,42 @@
+---
+- name: Install and configure Nginx
+  hosts: webservers
+  become: true
+  vars:
+    server_name: localhost
+
+  tasks:
+    - name: Update apt cache and install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Deploy custom index.html page
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Welcome to Nginx</title>
+              <style>body { font-family: sans-serif; text-align: center; margin-top: 100px; }</style>
+          </head>
+          <body>
+              <h1>Success! Nginx is managed by Ansible.</h1>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Ensure UFW allows HTTP traffic (optional)
+      community.general.ufw:
+        rule: allow
+        name: 'Nginx HTTP'
